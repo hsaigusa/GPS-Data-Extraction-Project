@@ -10,6 +10,8 @@ img_contents = os.listdir(img_folder)
 gps_all = {}
 coord_list = []
 
+# Convert degrees minutes to decimal
+# The formula should be changed depending on the widget you have
 def convert_to_degrees(value):
 
     # d0 = value[0][0]
@@ -29,20 +31,26 @@ def convert_to_degrees(value):
 
     return d + (m/60.0) + (s/3600.0)
 
-
+# Main script to extract geotag GPS information
 for img in img_contents:
     img = Image.open(os.path.join(img_folder,img))
     exif = {PIL.ExifTags.TAGS[k]: v for k, v in img._getexif().items() if k in ExifTags.TAGS}
+
+    # Convert GPS numbers to actual values
     for key in exif['GPSInfo'].keys():
         print(f"This is the code value {key}")
         decodedValue = ExifTags.GPSTAGS.get(key)
         print(f"This is its associated label {decodedValue}")
         print(exif['GPSInfo'][key])
         gps_all[decodedValue] = exif['GPSInfo'][key]
+
+    # Extract lon/lat info and their coordinate position
     long_ref = gps_all.get('GPSLongitudeRef')
     lat_ref = gps_all.get('GPSLatitudeRef')
     long = gps_all.get('GPSLongitude')
     lat = gps_all.get('GPSLatitude')
+
+    # Need to specify the degree  +- according to the location you are in the globe
     if long_ref == "W":
         long_in_degrees =  -abs(convert_to_degrees(long))
     else:
@@ -52,5 +60,6 @@ for img in img_contents:
     else:
         lat_in_degrees = convert_to_degrees(lat)
 
+    # Append the values into list - you can process the result in csv or shp this part on
     coord_list.append([long_in_degrees, lat_in_degrees])
     print(coord_list)
